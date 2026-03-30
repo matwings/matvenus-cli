@@ -1,4 +1,4 @@
-# matvenus-cli
+# @matwings/matvenus-cli
 
 Command-line interface for the VenusFactory Protein Tools API. Provides access to protein structure prediction, mutation analysis, molecular dynamics, and de novo protein design via the VenusFactory MCP server.
 
@@ -8,10 +8,10 @@ Command-line interface for the VenusFactory Protein Tools API. Provides access t
 
 ```bash
 # Install globally
-npm install -g matvenus-cli
+npm install -g @matwings/matvenus-cli
 
 # Or use without installation
-npx matvenus-cli --help
+npx @matwings/matvenus-cli --help
 ```
 
 ### From Source
