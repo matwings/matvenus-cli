@@ -1,4 +1,4 @@
-name: Publish to NPM
+name: publish.yml
 
 on:
   release:
