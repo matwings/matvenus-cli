@@ -4,10 +4,24 @@ Command-line interface for the VenusFactory Protein Tools API. Provides access t
 
 ## Installation
 
+### From NPM (Recommended)
+
 ```bash
+# Install globally
+npm install -g matvenus-cli
+
+# Or use without installation
+npx matvenus-cli --help
+```
+
+### From Source
+
+```bash
+git clone https://github.com/matwings/matwings-venus-cli.git
+cd matwings-venus-cli
 npm install
 npm run build
-npm link   # optional: install globally as `matvenus-cli`
+npm link  # optional: install globally as `matvenus-cli`
 ```
 
 ## Authentication
