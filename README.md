@@ -1,4 +1,4 @@
-# matwings-venus-cli
+# matvenus-cli
 
 Command-line interface for the VenusFactory Protein Tools API. Provides access to protein structure prediction, mutation analysis, molecular dynamics, and de novo protein design via the VenusFactory MCP server.
 
@@ -7,7 +7,7 @@ Command-line interface for the VenusFactory Protein Tools API. Provides access t
 ```bash
 npm install
 npm run build
-npm link   # optional: install globally as `matwings-venus-cli`
+npm link   # optional: install globally as `matvenus-cli`
 ```
 
 ## Authentication
@@ -38,10 +38,10 @@ You must poll `get-tool-result` until `status` is `success` or `error`:
 
 ```bash
 # Submit job
-matwings-venus-cli alphafold-protein-folding --body '{"sequence": "MKTAYIAKQ..."}'
+matvenus-cli alphafold-protein-folding --body '{"sequence": "MKTAYIAKQ..."}'
 
 # Poll for result (repeat until status = success)
-matwings-venus-cli get-tool-result --tool-call-id abc-123
+matvenus-cli get-tool-result --tool-call-id abc-123
 ```
 
 Status values: `pending` → `running` → `success` | `error`
@@ -55,12 +55,12 @@ Many commands accept `fasta_file`, `pdb_file`, etc. as OSS URLs. To use a local 
 CONTENT=$(base64 -w 0 my_protein.fasta)
 
 # 2. Upload and get OSS URL
-matwings-venus-cli upload-file-base-64 \
+matvenus-cli upload-file-base-64 \
   --body "{\"filename\": \"my_protein.fasta\", \"content_base64\": \"$CONTENT\"}"
 # Returns: result.url = "oss://bucket/..."
 
 # 3. Use the URL in prediction commands
-matwings-venus-cli alphafold-protein-folding \
+matvenus-cli alphafold-protein-folding \
   --body '{"fasta_file": "oss://bucket/..."}'
 ```
 
@@ -72,7 +72,7 @@ matwings-venus-cli alphafold-protein-folding \
 Predict functional residues (activity/binding/conserved sites, motifs).
 
 ```bash
-matwings-venus-cli predict-functional-residue --body '{
+matvenus-cli predict-functional-residue --body '{
   "sequence": "MKTAYIAKQRQISFVKSHFSRQ...",
   "model_name": "ESM2-650M",
   "task": "Activity Site"
@@ -90,7 +90,7 @@ matwings-venus-cli predict-functional-residue --body '{
 VenusX model for functional site prediction (higher accuracy than base model).
 
 ```bash
-matwings-venus-cli venusx-functional-residue-prediction --body '{
+matvenus-cli venusx-functional-residue-prediction --body '{
   "sequence": "MKTAYIAKQ...",
   "task": "VenusX-Activity",
   "mode": "pro"
@@ -110,7 +110,7 @@ matwings-venus-cli venusx-functional-residue-prediction --body '{
 Predict protein-level properties: solubility, localization, stability, kinetics, etc.
 
 ```bash
-matwings-venus-cli venusg-protein-function-prediction --body '{
+matvenus-cli venusg-protein-function-prediction --body '{
   "sequence": "MKTAYIAKQ...",
   "task": "VenusG-Solubility",
   "mode": "light"
@@ -128,7 +128,7 @@ matwings-venus-cli venusg-protein-function-prediction --body '{
 Calculate physicochemical properties and structural features.
 
 ```bash
-matwings-venus-cli predict-protein-properties --body '{
+matvenus-cli predict-protein-properties --body '{
   "sequence": "MKTAYIAKQ...",
   "task_name": "Physical and chemical properties"
 }'
@@ -146,7 +146,7 @@ matwings-venus-cli predict-protein-properties --body '{
 Fast protein structure prediction using ESMFold (sequence only, no MSA).
 
 ```bash
-matwings-venus-cli esmfold-protein-folding --body '{
+matvenus-cli esmfold-protein-folding --body '{
   "sequence": "MKTAYIAKQRQISFVKSHFSRQ"
 }'
 ```
@@ -161,13 +161,13 @@ High-accuracy structure prediction with AlphaFold2 or AlphaFold3.
 
 ```bash
 # Single chain (AF2)
-matwings-venus-cli alphafold-protein-folding --body '{
+matvenus-cli alphafold-protein-folding --body '{
   "model_version": "alphafold2",
   "sequence": "MKTAYIAKQ..."
 }'
 
 # Multi-chain complex with ligand (AF3)
-matwings-venus-cli alphafold-protein-folding --body '{
+matvenus-cli alphafold-protein-folding --body '{
   "model_version": "alphafold3",
   "sequences": [
     {"protein": {"id": "A", "sequence": "MKTAYIAKQ..."}},
@@ -192,14 +192,14 @@ Single-point mutation effect prediction using multi-model ensemble.
 
 ```bash
 # Light mode (sequence-based)
-matwings-venus-cli venusrem-mutation-prediction --body '{
+matvenus-cli venusrem-mutation-prediction --body '{
   "task": "stability",
   "mode": "light",
   "sequence": "MKTAYIAKQ..."
 }'
 
 # Pro mode (structure-based, higher accuracy)
-matwings-venus-cli venusrem-mutation-prediction --body '{
+matvenus-cli venusrem-mutation-prediction --body '{
   "task": "activity",
   "mode": "pro",
   "structure_file": "oss://bucket/protein.pdb"
@@ -221,7 +221,7 @@ Two-step workflow: **train** → **inference**
 
 ```bash
 # Step 1: Train models from experimental data
-matwings-venus-cli venusprime-multipoint-prediction --body '{
+matvenus-cli venusprime-multipoint-prediction --body '{
   "mode": "train",
   "sequence": "MKTAYIAKQ...",
   "experiment_file": "oss://bucket/mutations.csv",
@@ -231,7 +231,7 @@ matwings-venus-cli venusprime-multipoint-prediction --body '{
 # Returns tool_call_id; poll until success; result contains model_path_list
 
 # Step 2: Inference on combination mutations
-matwings-venus-cli venusprime-multipoint-prediction --body '{
+matvenus-cli venusprime-multipoint-prediction --body '{
   "mode": "inference",
   "model_path_list": ["oss://bucket/model_0.pkl", "..."],
   "site": [10, 25, 42]
@@ -257,7 +257,7 @@ matwings-venus-cli venusprime-multipoint-prediction --body '{
 Run GROMACS MD simulation (system build + production run).
 
 ```bash
-matwings-venus-cli gromacs-md --body '{
+matvenus-cli gromacs-md --body '{
   "pdb_file": "oss://bucket/protein.pdb",
   "force_field": "amber99sb-ildn",
   "water_model": "tip3p",
@@ -281,7 +281,7 @@ Analyze GROMACS MD trajectory (RMSD, RMSF, Rg, etc.).
 Requires output from a completed `gromacs-md` run.
 
 ```bash
-matwings-venus-cli gromacs-analysis --body '{
+matvenus-cli gromacs-analysis --body '{
   "tpr_file": "oss://bucket/md.tpr",
   "xtc_file": "oss://bucket/md.xtc"
 }'
@@ -293,7 +293,7 @@ matwings-venus-cli gromacs-analysis --body '{
 Mine novel protein variants from structure-based screening.
 
 ```bash
-matwings-venus-cli venusmine-protein-mining --body '{
+matvenus-cli venusmine-protein-mining --body '{
   "pdb_file": "oss://bucket/protein.pdb",
   "target_server": "slurm"
 }'
@@ -303,7 +303,7 @@ matwings-venus-cli venusmine-protein-mining --body '{
 Design sequences for a given protein backbone using ProteinMPNN.
 
 ```bash
-matwings-venus-cli proteinmpnn-sequence-design --body '{
+matvenus-cli proteinmpnn-sequence-design --body '{
   "pdb_path": "oss://bucket/backbone.pdb",
   "designed_chains": ["A"],
   "fixed_chains": ["B"],
@@ -328,20 +328,20 @@ De novo protein structure generation using RFdiffusion.
 
 ```bash
 # Unconditional generation
-matwings-venus-cli rfdiffusion-protein-design --body '{
+matvenus-cli rfdiffusion-protein-design --body '{
   "length": "100",
   "num_designs": 3
 }'
 
 # Motif scaffolding
-matwings-venus-cli rfdiffusion-protein-design --body '{
+matvenus-cli rfdiffusion-protein-design --body '{
   "input_pdb": "oss://bucket/motif.pdb",
   "contig": "A10-20,80",
   "num_designs": 5
 }'
 
 # Binder design
-matwings-venus-cli rfdiffusion-protein-design --body '{
+matvenus-cli rfdiffusion-protein-design --body '{
   "input_pdb": "oss://bucket/target.pdb",
   "hotspots": "A10,A15,A20",
   "length": "80-120"
@@ -365,7 +365,7 @@ Upload a local file to OSS storage and get a URL for use in other commands.
 
 ```bash
 CONTENT=$(base64 -w 0 protein.fasta)
-matwings-venus-cli upload-file-base-64 --body "{
+matvenus-cli upload-file-base-64 --body "{
   \"filename\": \"protein.fasta\",
   \"content_base64\": \"$CONTENT\"
 }"
@@ -378,7 +378,7 @@ matwings-venus-cli upload-file-base-64 --body "{
 Poll for the result of an async job.
 
 ```bash
-matwings-venus-cli get-tool-result --tool-call-id <tool_call_id>
+matvenus-cli get-tool-result --tool-call-id <tool_call_id>
 ```
 
 Response includes `status` (`pending`/`running`/`success`/`error`), `tool_result` (on success), and `slurm_tasks` with per-job details.
@@ -387,7 +387,7 @@ Response includes `status` (`pending`/`running`/`success`/`error`), `tool_result
 Cancel a pending or running job.
 
 ```bash
-matwings-venus-cli cancel-tool-result --tool-call-id <tool_call_id>
+matvenus-cli cancel-tool-result --tool-call-id <tool_call_id>
 ```
 
 ## Global Options
@@ -403,6 +403,6 @@ All commands support:
 ## Inspect Command Schema
 
 ```bash
-matwings-venus-cli alphafold-protein-folding --schema
-matwings-venus-cli venusrem-mutation-prediction --schema
+matvenus-cli alphafold-protein-folding --schema
+matvenus-cli venusrem-mutation-prediction --schema
 ```

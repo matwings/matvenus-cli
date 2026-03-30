@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Build artifacts
+dist/
+
+# NPM tarball
+*.tgz
+
+# Environment variables
+.env
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db
