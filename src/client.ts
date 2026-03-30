@@ -24,7 +24,7 @@ export async function request(config: ApiClientConfig, options: RequestOptions):
   // Add authentication from environment variables
   
   // HTTPBearer: Bearer token
-  const HTTPBearerToken = process.env.API_BEARER_TOKEN;
+  const HTTPBearerToken = process.env.MATVENUS_BEARER_TOKEN;
   if (HTTPBearerToken) {
     headers['Authorization'] = `Bearer ${HTTPBearerToken}`;
   }

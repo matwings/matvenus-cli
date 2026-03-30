@@ -29,7 +29,7 @@ npm link  # optional: install globally as `matvenus-cli`
 Set the Bearer token via environment variable before running any command:
 
 ```bash
-export API_BEARER_TOKEN="your-api-key-here"
+export MATVENUS_BEARER_TOKEN="your-token-here"
 ```
 
 ## Base URL
