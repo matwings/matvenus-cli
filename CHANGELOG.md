@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.1] - 2026-03-30
 
+### Changed
+- Renamed package to scoped name `@matwings/matvenus-cli` for better organization ownership.
+
 ### Added
 - Added GitHub Actions workflow for automated NPM publication on release.
 
