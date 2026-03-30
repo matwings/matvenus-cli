@@ -9,7 +9,7 @@
   "author": "matwings",
   "repository": {
     "type": "git",
-    "url": "https://github.com/matwings/matwings-venus-cli"
+    "url": "https://github.com/matwings/matvenus-cli.git"
   },
   "keywords": [
     "venus",

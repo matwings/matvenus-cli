@@ -17,8 +17,8 @@ npx matvenus-cli --help
 ### From Source
 
 ```bash
-git clone https://github.com/matwings/matwings-venus-cli.git
-cd matwings-venus-cli
+git clone https://github.com/matwings/matvenus-cli.git
+cd matvenus-cli
 npm install
 npm run build
 npm link  # optional: install globally as `matvenus-cli`

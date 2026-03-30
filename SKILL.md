@@ -1,6 +1,6 @@
 ---
 name: venus-protein-tools
-description: VenusFactory protein computational tools via matwings-venus-cli CLI. Covers structure prediction (ESMFold/AlphaFold2/AF3), mutation effect prediction (VenusREM/VenusPrime), functional site annotation (VenusX/VenusG), molecular dynamics (GROMACS), and de novo design (ProteinMPNN/RFdiffusion).
+description: VenusFactory protein computational tools via matvenus-cli CLI. Covers structure prediction (ESMFold/AlphaFold2/AF3), mutation effect prediction (VenusREM/VenusPrime), functional site annotation (VenusX/VenusG), molecular dynamics (GROMACS), and de novo design (ProteinMPNN/RFdiffusion).
 allowed-tools:
   - bash
 ---
