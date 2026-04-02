@@ -1,6 +1,6 @@
 # @matwings/matvenus-cli
 
-Command-line interface for the VenusFactory Protein Tools API. Provides access to protein structure prediction, mutation analysis, molecular dynamics, and de novo protein design via the VenusFactory MCP server.
+Command-line interface for the MatVenus Protein Tools API. Provides access to protein structure prediction, mutation analysis, molecular dynamics, and de novo protein design via the MatVenus MCP server.
 
 ## Installation
 
@@ -34,7 +34,7 @@ export MATVENUS_BEARER_TOKEN="your-token-here"
 
 ## Base URL
 
-The default base URL is `https://venus.matwings.com`. Override per-command with `--base-url <url>`.
+The default base URL is `https://www.matvenus.com`. Override per-command with `--base-url <url>`.
 
 ## Async Execution Pattern
 

@@ -1,7 +1,7 @@
 {
   "name": "@matwings/matvenus-cli",
-  "version": "0.2.2",
-  "description": "Standalone MCP server for VenusFactory protein tools",
+  "version": "0.2.3",
+  "description": "Standalone MCP server for MatVenus protein tools",
   "main": "dist/index.js",
   "bin": {
     "matvenus-cli": "bin/cli.js"
