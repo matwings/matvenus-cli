@@ -2,6 +2,10 @@
   "name": "@matwings/matvenus-cli",
   "version": "0.2.4",
   "description": "Standalone MCP server for MatVenus protein tools",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/matwings/matvenus-cli"
+  },
   "main": "dist/index.js",
   "bin": {
     "matvenus-cli": "bin/cli.js"
