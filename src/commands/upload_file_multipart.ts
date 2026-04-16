@@ -4,9 +4,10 @@ import { request, buildPath, buildQuery } from '../client';
 
 export function register(program: Command, baseUrl: string): void {
   program
-    .command('upload-file-base-64')
-    .description('Upload File Base64')
+    .command('upload-file-multipart')
+    .description('Upload File Multipart')
   .option('--body <json>', 'Request body as JSON string', (value) => value)
+  .option('--file <path>', 'File to upload')
   .option('--base-url <url>', 'Override base URL')
   .option('--output <format>', 'Output format: json, table', 'json')
   .option('--schema', 'Show API schema and exit')
@@ -14,72 +15,58 @@ export function register(program: Command, baseUrl: string): void {
       if (options.schema) {
         console.log(JSON.stringify({
   "method": "post",
-  "operationId": "upload_file_base64",
-  "summary": "Upload File Base64",
-  "description": "上传 Base64 编码的文件到存储系统。\n用于 Agent 在调用分析工具前上传本地文件并获取 URL。",
+  "operationId": "upload_file_multipart",
+  "summary": "Upload File Multipart",
+  "description": "通过 multipart/form-data 上传文件到存储系统，返回 OSS URL和文件路径等数据。",
   "tags": [
-    "tools-upload"
+    "tools-upload",
+    "tools-upload-http"
   ],
   "parameters": [],
   "requestBody": {
     "required": true,
-    "contentType": "application/json",
+    "contentType": "multipart/form-data",
     "schema": {
       "properties": {
-        "filename": {
+        "file": {
           "type": "string",
-          "title": "Filename",
-          "description": "文件名，例如 'protein.fasta'"
-        },
-        "content_base64": {
-          "type": "string",
-          "title": "Content Base64",
-          "description": "文件的 Base64 编码内容"
+          "format": "binary",
+          "title": "File",
+          "description": "文件（FASTA、PDB、CSV、SDF 等）"
         }
       },
       "type": "object",
       "required": [
-        "filename",
-        "content_base64"
+        "file"
       ],
-      "title": "MCPUploadFileRequest"
+      "title": "Body_upload_file_multipart"
     },
-    "isBinary": false
+    "isBinary": true
   },
   "responses": [
     {
-      "statusCode": "200",
+      "statusCode": "201",
       "description": "Successful Response",
       "contentType": "application/json",
       "schema": {
         "properties": {
-          "tool_call_id": {
+          "file_id": {
             "type": "string",
-            "title": "Tool Call Id",
-            "description": "系统生成的调用唯一ID"
+            "title": "File Id",
+            "description": "文件id"
           },
-          "status": {
-            "description": "调用状态: running, success, error 等",
+          "success": {
+            "type": "boolean",
+            "title": "Success",
+            "description": "文件是否上传成功",
+            "default": true
+          },
+          "filename": {
             "type": "string",
-            "enum": [
-              "pending",
-              "running",
-              "success",
-              "error"
-            ],
-            "title": "ToolResultStatus"
+            "title": "Filename",
+            "description": "文件原始名称"
           },
-          "result": {
-            "anyOf": [
-              {},
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Result",
-            "description": "如果即时成功，这里是工具的返回结果字典"
-          },
-          "error_message": {
+          "local_path": {
             "anyOf": [
               {
                 "type": "string"
@@ -88,34 +75,40 @@ export function register(program: Command, baseUrl: string): void {
                 "type": "null"
               }
             ],
-            "title": "Error Message",
-            "description": "如果有错误，提供错误信息"
+            "title": "Local Path",
+            "description": "文件在用户workspace的本地路径"
           },
-          "credits_cost": {
+          "url": {
             "anyOf": [
               {
-                "type": "number"
+                "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Credits Cost",
-            "description": "消费积分"
+            "title": "Url",
+            "description": "文件oss url"
           },
-          "tool_name": {
-            "type": "string",
-            "title": "Tool Name",
-            "description": "执行的工具名"
+          "size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size",
+            "description": "文件大小"
           }
         },
         "type": "object",
         "required": [
-          "tool_call_id",
-          "status",
-          "tool_name"
+          "file_id",
+          "filename"
         ],
-        "title": "ToolInvokeResponse"
+        "title": "UploadFileResponse"
       },
       "isBinary": false
     },
@@ -181,11 +174,24 @@ export function register(program: Command, baseUrl: string): void {
       try {
         const currentBaseUrl = options.baseUrl || baseUrl;
         const config = { baseUrl: currentBaseUrl };
-const path = '/api/tools/upload/base64';
+const path = '/api/tools/upload/multipart';
 const url = path;
 
 
-      const body = options.body ? JSON.parse(options.body) : undefined;
+      const body = new FormData();
+      if (options.body) {
+        const bodyObj = JSON.parse(options.body);
+        for (const [key, value] of Object.entries(bodyObj)) {
+          body.append(key, value as any);
+        }
+      }
+      if (options.file) {
+        const fs = await import('fs');
+        const { blob } = await import('node:stream/consumers');
+        const fileStream = fs.createReadStream(options.file);
+        // In Node 18+ fetch supports Blob/File in FormData
+        body.append('file', await blob(fileStream) as any, options.file);
+      }
       
       const response = await request(config, {
         method: 'post',

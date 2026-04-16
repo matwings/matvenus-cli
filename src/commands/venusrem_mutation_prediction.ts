@@ -45,7 +45,7 @@ export function register(program: Command, baseUrl: string): void {
             }
           ],
           "title": "Structure File",
-          "description": "OSS URL to structure file (required when mode=pro)"
+          "description": "Local path to structure file (required when mode=pro)"
         },
         "sequence": {
           "anyOf": [
@@ -69,7 +69,7 @@ export function register(program: Command, baseUrl: string): void {
             }
           ],
           "title": "Fasta File",
-          "description": "OSS URL to FASTA file (for mode=light)"
+          "description": "Local path to FASTA file (for mode=light)"
         },
         "config": {
           "anyOf": [

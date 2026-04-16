@@ -4,8 +4,8 @@ import { request, buildPath, buildQuery } from '../client';
 
 export function register(program: Command, baseUrl: string): void {
   program
-    .command('alphafold-protein-folding')
-    .description('Alphafold Folding')
+    .command('alphafold-2-protein-folding')
+    .description('Alphafold2 Folding')
   .option('--body <json>', 'Request body as JSON string', (value) => value)
   .option('--base-url <url>', 'Override base URL')
   .option('--output <format>', 'Output format: json, table', 'json')
@@ -14,8 +14,8 @@ export function register(program: Command, baseUrl: string): void {
       if (options.schema) {
         console.log(JSON.stringify({
   "method": "post",
-  "operationId": "alphafold_protein_folding",
-  "summary": "Alphafold Folding",
+  "operationId": "alphafold2_protein_folding",
+  "summary": "Alphafold2 Folding",
   "tags": [
     "tools-predict"
   ],
@@ -25,12 +25,6 @@ export function register(program: Command, baseUrl: string): void {
     "contentType": "application/json",
     "schema": {
       "properties": {
-        "model_version": {
-          "type": "string",
-          "title": "Model Version",
-          "description": "AlphaFold version to use: 'alphafold2' or 'alphafold3'",
-          "default": "alphafold2"
-        },
         "sequence": {
           "anyOf": [
             {
@@ -53,46 +47,24 @@ export function register(program: Command, baseUrl: string): void {
             }
           ],
           "title": "Fasta File",
-          "description": "OSS URL to FASTA file (.fasta, .fa, or .faa) (for simple single/multi-chain prediction)"
+          "description": "Local path to FASTA file (.fasta, .fa, or .faa) (for simple single/multi-chain prediction)"
         },
-        "sequences": {
-          "anyOf": [
-            {
-              "items": {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              "type": "array"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "title": "Sequences",
-          "description": "List of sequence entities for multi-chain prediction. For AlphaFold2: Only protein chains are supported (DNA/RNA/ligands ignored). For AlphaFold3: Full support for proteins, DNA, RNA, and ligands. Each entity can be: {'protein': {'id': 'A', 'sequence': 'PVLSCGEWQL', 'description': 'Chain A', 'modifications': [{'ptmType': 'HY3', 'ptmPosition': 1}], 'unpairedMsa': '...', 'pairedMsa': '...', 'templates': [...]}} {'dna': {'id': 'C', 'sequence': 'GACCTCT', 'modifications': [{'modificationType': '6OG', 'basePosition': 1}], 'unpairedMsa': '...'}} (AF3 only) {'rna': {'id': 'E', 'sequence': 'AGCU', 'modifications': [{'modificationType': '2MG', 'basePosition': 1}], 'unpairedMsa': '...'}} (AF3 only) {'ligand': {'id': ['F', 'G'], 'ccdCodes': ['ATP']}} or {'ligand': {'id': 'Z', 'smiles': 'CC(=O)OC1C[NH+]2CCC1CC2'}} (AF3 only)"
+        "submission_mode": {
+          "type": "string",
+          "title": "Submission Mode",
+          "description": "AlphaFold2 submission mode: 'paracloud_af' (legacy single-cluster) or 'matvenus_huge' (MSA on matvenus_huge + inference on paracloud_4090)",
+          "default": "matvenus_huge"
         },
-        "model_seeds": {
-          "anyOf": [
-            {
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "title": "Model Seeds",
-          "description": "Random seeds for AlphaFold3 prediction (default: [42])",
-          "default": [
-            42
-          ]
+        "model_preset": {
+          "type": "string",
+          "title": "Model Preset",
+          "description": "AlphaFold2 model preset passed to '-p': 'monomer_ptm' (default) or 'multimer'",
+          "default": "monomer_ptm"
         }
       },
       "type": "object",
-      "title": "AlphaFoldInput",
-      "description": "Input for AlphaFold2/3 protein structure prediction"
+      "title": "AlphaFold2Input",
+      "description": "Input for AlphaFold2 protein structure prediction."
     },
     "isBinary": false
   },
@@ -231,7 +203,7 @@ export function register(program: Command, baseUrl: string): void {
       try {
         const currentBaseUrl = options.baseUrl || baseUrl;
         const config = { baseUrl: currentBaseUrl };
-const path = '/api/tools/predict/alphafold';
+const path = '/api/tools/predict/alphafold2';
 const url = path;
 
 

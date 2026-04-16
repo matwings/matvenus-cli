@@ -4,8 +4,8 @@ import { request, buildPath, buildQuery } from '../client';
 
 export function register(program: Command, baseUrl: string): void {
   program
-    .command('cancel-tool-result')
-    .description('Cancel Tool Result')
+    .command('cancel-tool-call')
+    .description('Cancel Tool Call')
   .requiredOption('--tool-call-id <value>', 'tool_call_id')
   .option('--base-url <url>', 'Override base URL')
   .option('--output <format>', 'Output format: json, table', 'json')
@@ -14,8 +14,8 @@ export function register(program: Command, baseUrl: string): void {
       if (options.schema) {
         console.log(JSON.stringify({
   "method": "post",
-  "operationId": "cancel_tool_result",
-  "summary": "Cancel Tool Result",
+  "operationId": "cancel_tool_call",
+  "summary": "Cancel Tool Call",
   "description": "取消处于 pending 或 running 状态的工具任务。\n如果工具包含 Slurm 任务，会先取消 Slurm 任务再更新状态。\n通过 API Key 鉴权。",
   "tags": [
     "tools-results"

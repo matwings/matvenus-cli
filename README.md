@@ -44,7 +44,7 @@ The default base URL is `https://www.matvenus.com`. Override per-command with `-
 {
   "tool_call_id": "abc-123",
   "status": "pending",
-  "tool_name": "alphafold_protein_folding"
+  "tool_name": "alphafold2_protein_folding"
 }
 ```
 
@@ -52,7 +52,7 @@ You must poll `get-tool-result` until `status` is `success` or `error`:
 
 ```bash
 # Submit job
-matvenus-cli alphafold-protein-folding --body '{"sequence": "MKTAYIAKQ..."}'
+matvenus-cli alphafold-2-protein-folding --body '{"sequence": "MKTAYIAKQ..."}'
 
 # Poll for result (repeat until status = success)
 matvenus-cli get-tool-result --tool-call-id abc-123
@@ -62,19 +62,15 @@ Status values: `pending` → `running` → `success` | `error`
 
 ## Uploading Local Files
 
-Many commands accept `fasta_file`, `pdb_file`, etc. as OSS URLs. To use a local file:
+Many commands accept `fasta_file`, `pdb_file`, etc. as OSS URLs. To use a local file, upload it first with `upload-file-multipart`:
 
 ```bash
-# 1. Base64-encode the file
-CONTENT=$(base64 -w 0 my_protein.fasta)
-
-# 2. Upload and get OSS URL
-matvenus-cli upload-file-base-64 \
-  --body "{\"filename\": \"my_protein.fasta\", \"content_base64\": \"$CONTENT\"}"
+# 1. Upload the file directly (no encoding needed)
+matvenus-cli upload-file-multipart --file my_protein.fasta
 # Returns: result.url = "oss://bucket/..."
 
-# 3. Use the URL in prediction commands
-matvenus-cli alphafold-protein-folding \
+# 2. Use the URL in prediction commands
+matvenus-cli alphafold-2-protein-folding \
   --body '{"fasta_file": "oss://bucket/..."}'
 ```
 
@@ -170,19 +166,40 @@ matvenus-cli esmfold-protein-folding --body '{
 | sequence | yes | — |
 | verbose | no | `true` |
 
-#### `alphafold-protein-folding`
-High-accuracy structure prediction with AlphaFold2 or AlphaFold3.
+#### `alphafold-2-protein-folding`
+High-accuracy AlphaFold2 structure prediction for single or multi-chain proteins.
 
 ```bash
-# Single chain (AF2)
-matvenus-cli alphafold-protein-folding --body '{
-  "model_version": "alphafold2",
+# Single chain
+matvenus-cli alphafold-2-protein-folding --body '{
   "sequence": "MKTAYIAKQ..."
 }'
 
-# Multi-chain complex with ligand (AF3)
-matvenus-cli alphafold-protein-folding --body '{
-  "model_version": "alphafold3",
+# Multi-chain (multimer preset, requires FASTA file)
+matvenus-cli alphafold-2-protein-folding --body '{
+  "fasta_file": "oss://bucket/complex.fasta",
+  "model_preset": "multimer"
+}'
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| sequence | string \| null | — | Single-chain amino acid sequence |
+| fasta_file | string \| null | — | OSS URL to FASTA (required for multimer) |
+| submission_mode | string | `matvenus_huge` | `matvenus_huge` (MSA + inference) or `paracloud_af` (legacy) |
+| model_preset | string | `monomer_ptm` | `monomer_ptm` or `multimer` |
+
+#### `alphafold-3-protein-folding`
+AlphaFold3 structure prediction supporting protein, DNA, RNA, and ligand complexes.
+
+```bash
+# Single chain
+matvenus-cli alphafold-3-protein-folding --body '{
+  "sequence": "MKTAYIAKQ..."
+}'
+
+# Protein + ATP ligand complex
+matvenus-cli alphafold-3-protein-folding --body '{
   "sequences": [
     {"protein": {"id": "A", "sequence": "MKTAYIAKQ..."}},
     {"ligand": {"id": "Z", "ccdCodes": ["ATP"]}}
@@ -193,11 +210,10 @@ matvenus-cli alphafold-protein-folding --body '{
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| model_version | string | `alphafold2` | `alphafold2` or `alphafold3` |
-| sequence | string \| null | — | Single-chain sequence (AF2/AF3 simple) |
+| sequence | string \| null | — | Single-chain sequence (simple cases) |
 | fasta_file | string \| null | — | OSS URL to FASTA |
-| sequences | array \| null | — | Multi-chain/ligand entities (see schema) |
-| model_seeds | int[] \| null | `[42]` | Random seeds (AF3 only) |
+| sequences | array \| null | — | Multi-chain/ligand entity list (proteins, DNA, RNA, ligands) |
+| model_seeds | int[] \| null | `[42]` | Random seeds for prediction |
 
 ### Mutation Prediction
 
@@ -374,17 +390,19 @@ matvenus-cli rfdiffusion-protein-design --body '{
 
 ### File Upload
 
-#### `upload-file-base-64`
-Upload a local file to OSS storage and get a URL for use in other commands.
+#### `upload-file-multipart`
+Upload a local file via multipart/form-data. No encoding required — works for any file size.
 
 ```bash
-CONTENT=$(base64 -w 0 protein.fasta)
-matvenus-cli upload-file-base-64 --body "{
-  \"filename\": \"protein.fasta\",
-  \"content_base64\": \"$CONTENT\"
-}"
+matvenus-cli upload-file-multipart --file protein.pdb
 # Response: result.url = OSS URL to use in other commands
 ```
+
+| Field | Description |
+|-------|-------------|
+| `--file <path>` | Local file path (FASTA, PDB, CSV, SDF, etc.) |
+| `result.url` | OSS URL to pass to prediction commands |
+| `result.local_path` | Workspace-relative path (for agent filesystem access) |
 
 ### Result Management
 
@@ -417,6 +435,7 @@ All commands support:
 ## Inspect Command Schema
 
 ```bash
-matvenus-cli alphafold-protein-folding --schema
+matvenus-cli alphafold-2-protein-folding --schema
+matvenus-cli alphafold-3-protein-folding --schema
 matvenus-cli venusrem-mutation-prediction --schema
 ```

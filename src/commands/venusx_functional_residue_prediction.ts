@@ -47,7 +47,7 @@ export function register(program: Command, baseUrl: string): void {
             }
           ],
           "title": "Fasta File",
-          "description": "OSS URL to FASTA file"
+          "description": "Local path to FASTA file"
         },
         "task": {
           "type": "string",

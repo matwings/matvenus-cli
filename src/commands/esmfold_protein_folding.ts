@@ -26,9 +26,28 @@ export function register(program: Command, baseUrl: string): void {
     "schema": {
       "properties": {
         "sequence": {
-          "type": "string",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "title": "Sequence",
           "description": "Protein sequence in single letter amino acid code"
+        },
+        "fasta_file": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Fasta File",
+          "description": "Local path to FASTA file (.fasta, .fa, or .faa)"
         },
         "verbose": {
           "anyOf": [
@@ -45,9 +64,6 @@ export function register(program: Command, baseUrl: string): void {
         }
       },
       "type": "object",
-      "required": [
-        "sequence"
-      ],
       "title": "ProteinStructurePredictionInput",
       "description": "Input for protein structure prediction based on ESMFold"
     },

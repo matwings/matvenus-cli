@@ -4,8 +4,8 @@ import { request, buildPath, buildQuery } from '../client';
 
 export function register(program: Command, baseUrl: string): void {
   program
-    .command('venusprime-multipoint-prediction')
-    .description('Venusprime Multipoint')
+    .command('alphafold-3-protein-folding')
+    .description('Alphafold3 Folding')
   .option('--body <json>', 'Request body as JSON string', (value) => value)
   .option('--base-url <url>', 'Override base URL')
   .option('--output <format>', 'Output format: json, table', 'json')
@@ -14,8 +14,8 @@ export function register(program: Command, baseUrl: string): void {
       if (options.schema) {
         console.log(JSON.stringify({
   "method": "post",
-  "operationId": "venusprime_multipoint_prediction",
-  "summary": "Venusprime Multipoint",
+  "operationId": "alphafold3_protein_folding",
+  "summary": "Alphafold3 Folding",
   "tags": [
     "tools-predict"
   ],
@@ -25,18 +25,6 @@ export function register(program: Command, baseUrl: string): void {
     "contentType": "application/json",
     "schema": {
       "properties": {
-        "mode": {
-          "type": "string",
-          "title": "Mode",
-          "description": "Operation mode: 'train' to train models from experimental data, 'inference' to predict multi-point mutations using trained models",
-          "default": "inference"
-        },
-        "venus_mode": {
-          "type": "string",
-          "title": "Venus Mode",
-          "description": "Model mode: 'light' for ridge regression (default), 'pro' for sesnet (not implemented yet)",
-          "default": "light"
-        },
         "sequence": {
           "anyOf": [
             {
@@ -47,7 +35,7 @@ export function register(program: Command, baseUrl: string): void {
             }
           ],
           "title": "Sequence",
-          "description": "Wild-type protein sequence (required for train mode if fasta_file not provided)"
+          "description": "Protein sequence in single letter amino acid code (for simple single-chain prediction)"
         },
         "fasta_file": {
           "anyOf": [
@@ -59,30 +47,14 @@ export function register(program: Command, baseUrl: string): void {
             }
           ],
           "title": "Fasta File",
-          "description": "Local path to FASTA file with wild-type sequence (required for train mode if sequence not provided)"
+          "description": "Local path to FASTA file (.fasta, .fa, or .faa) (for simple single/multi-chain prediction)"
         },
-        "experiment_file": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "title": "Experiment File",
-          "description": "Local path to CSV file with 'mutant' and 'score' columns for training (required for train mode)"
-        },
-        "score_col_name": {
-          "type": "string",
-          "title": "Score Col Name",
-          "description": "Name of score column in experiment_file to train"
-        },
-        "model_path_list": {
+        "sequences": {
           "anyOf": [
             {
               "items": {
-                "type": "string"
+                "additionalProperties": true,
+                "type": "object"
               },
               "type": "array"
             },
@@ -90,10 +62,10 @@ export function register(program: Command, baseUrl: string): void {
               "type": "null"
             }
           ],
-          "title": "Model Path List",
-          "description": "List of trained model file paths or local paths (required for inference mode)"
+          "title": "Sequences",
+          "description": "List of sequence entities supporting proteins, DNA, RNA, and ligands for AlphaFold3."
         },
-        "site": {
+        "model_seeds": {
           "anyOf": [
             {
               "items": {
@@ -105,54 +77,16 @@ export function register(program: Command, baseUrl: string): void {
               "type": "null"
             }
           ],
-          "title": "Site",
-          "description": "Mutation site numbers for combination mutations in inference mode (default: [2, 3, 4])",
+          "title": "Model Seeds",
+          "description": "Random seeds for AlphaFold3 prediction (default: [42])",
           "default": [
-            2,
-            3,
-            4
+            42
           ]
-        },
-        "model_num": {
-          "type": "integer",
-          "title": "Model Num",
-          "description": "Number of ensemble models to train (for train mode, default: 5)",
-          "default": 5
-        },
-        "batch_size": {
-          "type": "integer",
-          "title": "Batch Size",
-          "description": "Batch size for embedding extraction during training (for train mode, default: 4)",
-          "default": 4
-        },
-        "inference_batch_size": {
-          "type": "integer",
-          "title": "Inference Batch Size",
-          "description": "Batch size for embedding extraction during inference (for inference mode, default: 32)",
-          "default": 32
-        },
-        "config": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "title": "Config",
-          "description": "Path to VenusPrime config YAML file (optional, default: venusprime_config.yaml in script directory)"
-        },
-        "target_server": {
-          "type": "string",
-          "title": "Target Server",
-          "description": "Target server for job submission: 'slurm' or 'paracloud'",
-          "default": "slurm"
         }
       },
       "type": "object",
-      "title": "VenusPrimeInput",
-      "description": "Input for VenusPrime multi-point combination mutation prediction (light=ridge regression, pro=reserved)"
+      "title": "AlphaFold3Input",
+      "description": "Input for AlphaFold3 protein/complex structure prediction."
     },
     "isBinary": false
   },
@@ -291,7 +225,7 @@ export function register(program: Command, baseUrl: string): void {
       try {
         const currentBaseUrl = options.baseUrl || baseUrl;
         const config = { baseUrl: currentBaseUrl };
-const path = '/api/tools/predict/venusprime-multipoint';
+const path = '/api/tools/predict/alphafold3';
 const url = path;
 
 

@@ -33,20 +33,16 @@ Most commands accept **either** `sequence` (inline string) or `fasta_file` (OSS 
 
 ## Uploading Local Files
 
-When the user provides a local PDB/FASTA file, you MUST upload it first:
+When the user provides a local PDB/FASTA file, you MUST upload it first. Use `upload-file-multipart`:
 
 ```bash
-# 1. Encode the file
-CONTENT=$(base64 -w 0 /path/to/file.pdb)
+# Upload directly — no encoding needed
+RESULT=$(matwings-venus-cli upload-file-multipart --file /path/to/file.pdb)
 
-# 2. Upload
-RESULT=$(matwings-venus-cli upload-file-base-64 \
-  --body "{\"filename\": \"file.pdb\", \"content_base64\": \"$CONTENT\"}")
-
-# 3. Extract OSS URL (upload is synchronous — status:success immediately)
+# Extract OSS URL (upload is synchronous — completes immediately)
 OSS_URL=$(echo "$RESULT" | jq -r '.result.url')
 
-# 4. Use OSS_URL in the prediction command
+# Use OSS_URL in the prediction command
 ```
 
 Upload responses are **synchronous** (`status: success` immediately). The `result.url` field contains the OSS URL.
@@ -68,18 +64,35 @@ matwings-venus-cli esmfold-protein-folding \
 ```
 Required: `sequence`
 
-#### `alphafold-protein-folding`
-High-accuracy prediction. AlphaFold2 for single/multi protein chains. AlphaFold3 for proteins + DNA/RNA/ligands.
+#### `alphafold-2-protein-folding`
+AlphaFold2 high-accuracy structure prediction for single or multi-chain proteins.
 
 ```bash
-# AF2, single chain
-matwings-venus-cli alphafold-protein-folding \
-  --body '{"model_version": "alphafold2", "sequence": "MKTAY..."}'
+# Single chain
+matwings-venus-cli alphafold-2-protein-folding \
+  --body '{"sequence": "MKTAY..."}'
 
-# AF3, protein + ATP ligand
-matwings-venus-cli alphafold-protein-folding \
+# Multi-chain (multimer preset, requires FASTA file)
+matwings-venus-cli alphafold-2-protein-folding \
+  --body '{"fasta_file": "oss://bucket/complex.fasta", "model_preset": "multimer"}'
+```
+
+Parameters:
+- `sequence` or `fasta_file`: input (multimer mode requires `fasta_file`)
+- `submission_mode`: `"matvenus_huge"` (default, MSA + inference) | `"paracloud_af"` (legacy)
+- `model_preset`: `"monomer_ptm"` (default) | `"multimer"`
+
+#### `alphafold-3-protein-folding`
+AlphaFold3 structure prediction for proteins, DNA, RNA, and ligand complexes.
+
+```bash
+# Single chain
+matwings-venus-cli alphafold-3-protein-folding \
+  --body '{"sequence": "MKTAY..."}'
+
+# Protein + ATP ligand complex
+matwings-venus-cli alphafold-3-protein-folding \
   --body '{
-    "model_version": "alphafold3",
     "sequences": [
       {"protein": {"id": "A", "sequence": "MKTAY..."}},
       {"ligand": {"id": "Z", "ccdCodes": ["ATP"]}}
@@ -88,13 +101,14 @@ matwings-venus-cli alphafold-protein-folding \
 ```
 
 Parameters:
-- `model_version`: `"alphafold2"` (default) | `"alphafold3"`
-- `sequence` or `fasta_file`: for simple single-chain
-- `sequences`: list of entity objects for multi-chain or AF3 with ligands/DNA/RNA
-- `model_seeds`: list of ints (AF3 only, default `[42]`)
+- `sequence` or `fasta_file`: for simple single-chain inputs
+- `sequences`: list of entity objects for multi-chain / mixed-molecule complexes
+- `model_seeds`: list of ints (default `[42]`); multiple seeds for ensemble
 
-**AF2 sequences format**: `{"protein": {"id": "A", "sequence": "..."}}`
-**AF3 ligand format**: `{"ligand": {"id": "Z", "ccdCodes": ["ATP"]}}` or `{"ligand": {"id": "Z", "smiles": "..."}}`
+**Protein entity**: `{"protein": {"id": "A", "sequence": "..."}}`
+**Ligand (CCD)**: `{"ligand": {"id": "Z", "ccdCodes": ["ATP"]}}`
+**Ligand (SMILES)**: `{"ligand": {"id": "Z", "smiles": "CC(=O)..."}}`
+**DNA/RNA**: `{"dna": {"id": "C", "sequence": "GACCTCT"}}` / `{"rna": {"id": "E", "sequence": "AGCU"}}`
 
 ---
 
@@ -322,11 +336,9 @@ Contig syntax: `A10-20` = residues 10-20 of chain A (fixed); `80` = 80 new resid
 
 ### Utility Commands
 
-#### `upload-file-base-64` (synchronous)
+#### `upload-file-multipart` (synchronous)
 ```bash
-CONTENT=$(base64 -w 0 protein.pdb)
-matwings-venus-cli upload-file-base-64 \
-  --body "{\"filename\": \"protein.pdb\", \"content_base64\": \"$CONTENT\"}"
+matwings-venus-cli upload-file-multipart --file protein.pdb
 # result.url is the OSS URL
 ```
 
@@ -349,8 +361,9 @@ Cancels pending or running jobs including underlying Slurm tasks.
 | Task | Use |
 |------|-----|
 | Quick structure from sequence | `esmfold-protein-folding` |
-| Accurate structure, single protein | `alphafold-protein-folding` (AF2) |
-| Structure with DNA/RNA/ligands | `alphafold-protein-folding` (AF3) |
+| Accurate structure, single protein | `alphafold-2-protein-folding` |
+| Multi-chain protein (multimer) | `alphafold-2-protein-folding` (`model_preset: multimer`) |
+| Structure with DNA/RNA/ligands | `alphafold-3-protein-folding` |
 | Where does this enzyme act? | `venusx-functional-residue-prediction` task=VenusX-Activity |
 | Which residues bind a ligand? | `venusx-functional-residue-prediction` task=VenusX-Binding |
 | Is this protein soluble? | `venusg-protein-function-prediction` task=VenusG-Solubility |

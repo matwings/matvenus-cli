@@ -47,7 +47,7 @@ export function register(program: Command, baseUrl: string): void {
             }
           ],
           "title": "Fasta File",
-          "description": "OSS URL to PDB structure file or FASTA file"
+          "description": "Local path to PDB structure file or FASTA file"
         },
         "task_name": {
           "type": "string",

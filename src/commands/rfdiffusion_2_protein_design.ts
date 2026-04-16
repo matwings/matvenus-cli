@@ -4,8 +4,8 @@ import { request, buildPath, buildQuery } from '../client';
 
 export function register(program: Command, baseUrl: string): void {
   program
-    .command('venusprime-multipoint-prediction')
-    .description('Venusprime Multipoint')
+    .command('rfdiffusion-2-protein-design')
+    .description('Rfdiffusion2 Design')
   .option('--body <json>', 'Request body as JSON string', (value) => value)
   .option('--base-url <url>', 'Override base URL')
   .option('--output <format>', 'Output format: json, table', 'json')
@@ -14,8 +14,8 @@ export function register(program: Command, baseUrl: string): void {
       if (options.schema) {
         console.log(JSON.stringify({
   "method": "post",
-  "operationId": "venusprime_multipoint_prediction",
-  "summary": "Venusprime Multipoint",
+  "operationId": "rfdiffusion2_protein_design",
+  "summary": "Rfdiffusion2 Design",
   "tags": [
     "tools-predict"
   ],
@@ -25,19 +25,7 @@ export function register(program: Command, baseUrl: string): void {
     "contentType": "application/json",
     "schema": {
       "properties": {
-        "mode": {
-          "type": "string",
-          "title": "Mode",
-          "description": "Operation mode: 'train' to train models from experimental data, 'inference' to predict multi-point mutations using trained models",
-          "default": "inference"
-        },
-        "venus_mode": {
-          "type": "string",
-          "title": "Venus Mode",
-          "description": "Model mode: 'light' for ridge regression (default), 'pro' for sesnet (not implemented yet)",
-          "default": "light"
-        },
-        "sequence": {
+        "input_pdb": {
           "anyOf": [
             {
               "type": "string"
@@ -46,92 +34,40 @@ export function register(program: Command, baseUrl: string): void {
               "type": "null"
             }
           ],
-          "title": "Sequence",
-          "description": "Wild-type protein sequence (required for train mode if fasta_file not provided)"
+          "title": "Input Pdb",
+          "description": "Input structure path for RFdiffusion2. Accepts local path or OSS URL. Required for binder design workflows; for unconditional generation, pass explicit null."
         },
-        "fasta_file": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "title": "Fasta File",
-          "description": "Local path to FASTA file with wild-type sequence (required for train mode if sequence not provided)"
-        },
-        "experiment_file": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "title": "Experiment File",
-          "description": "Local path to CSV file with 'mutant' and 'score' columns for training (required for train mode)"
-        },
-        "score_col_name": {
+        "task_mode": {
           "type": "string",
-          "title": "Score Col Name",
-          "description": "Name of score column in experiment_file to train"
+          "title": "Task Mode",
+          "description": "RFdiffusion2 task mode: binder, motif_scaffolding, partial_hallucination, or unconditional. binder mode requires hotspots.",
+          "default": "binder"
         },
-        "model_path_list": {
+        "contig": {
           "anyOf": [
             {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
+              "type": "string"
             },
             {
               "type": "null"
             }
           ],
-          "title": "Model Path List",
-          "description": "List of trained model file paths or local paths (required for inference mode)"
+          "title": "Contig",
+          "description": "RFdiffusion2 contig specification (official format aligned with ppi_rf_bench.json): Chain separator '_', segment separator ',', chain break '0'. **PPI/Binder format (RECOMMENDED)**: \"100-100,0_B1-193\" (binder chain _ target chain from official benchmarks). Other examples: \"46,A106-106,59\" (motif scaffolding), \"150-150\" (unconditional), \"['20','A3-23','30']\" (list style, auto-converted). Legacy '/0' syntax auto-converted for backward compatibility. In binder mode with `input_pdb` + `length`, runtime auto-generates multi-chain PPI format when `target_chain` is provided."
         },
-        "site": {
-          "anyOf": [
-            {
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "title": "Site",
-          "description": "Mutation site numbers for combination mutations in inference mode (default: [2, 3, 4])",
-          "default": [
-            2,
-            3,
-            4
-          ]
+        "preflight_only": {
+          "type": "boolean",
+          "title": "Preflight Only",
+          "description": "When true, run validation + chain checks + contig derivation only and return a runnable snapshot with non-terminal precheck status; no GPU job submission.",
+          "default": false
         },
-        "model_num": {
+        "num_designs": {
           "type": "integer",
-          "title": "Model Num",
-          "description": "Number of ensemble models to train (for train mode, default: 5)",
-          "default": 5
+          "title": "Num Designs",
+          "description": "Number of designs to generate (default: 1)",
+          "default": 1
         },
-        "batch_size": {
-          "type": "integer",
-          "title": "Batch Size",
-          "description": "Batch size for embedding extraction during training (for train mode, default: 4)",
-          "default": 4
-        },
-        "inference_batch_size": {
-          "type": "integer",
-          "title": "Inference Batch Size",
-          "description": "Batch size for embedding extraction during inference (for inference mode, default: 32)",
-          "default": 32
-        },
-        "config": {
+        "length": {
           "anyOf": [
             {
               "type": "string"
@@ -140,19 +76,118 @@ export function register(program: Command, baseUrl: string): void {
               "type": "null"
             }
           ],
-          "title": "Config",
-          "description": "Path to VenusPrime config YAML file (optional, default: venusprime_config.yaml in script directory)"
+          "title": "Length",
+          "description": "Designed-length constraint (commonly binder length), e.g., '100' or '80-120'. Do not pass length-only values in `contig` when using an input target structure."
         },
-        "target_server": {
-          "type": "string",
-          "title": "Target Server",
-          "description": "Target server for job submission: 'slurm' or 'paracloud'",
-          "default": "slurm"
+        "hotspots": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Hotspots",
+          "description": "Comma-separated hotspot residues without outer brackets (e.g., 'A59,A83,A91' for ppi.hotspot_res). Required for binder workflows with input_pdb."
+        },
+        "target_chain": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Target Chain",
+          "description": "Explicit target chain ID for binder contig anchor when `contig` is omitted in binder mode. Must be single-character alphanumeric (e.g., 'A', 'C', '1'). Runtime verifies this chain exists in input_pdb and is consistent with hotspot chains."
+        },
+        "partial_t": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Partial T",
+          "description": "Mapped to diffuser.partial_T in RFdiffusion2 runtime. Keep positive values; recommended operating ranges depend on deployed RFdiffusion configuration."
+        },
+        "T": {
+          "type": "integer",
+          "title": "T",
+          "description": "Number of diffusion steps (default: 50)",
+          "default": 50
+        },
+        "seed_offset": {
+          "type": "integer",
+          "title": "Seed Offset",
+          "description": "Random seed offset (default: 0)",
+          "default": 0
+        },
+        "recenter": {
+          "type": "boolean",
+          "title": "Recenter",
+          "description": "Recenter structure (default: True)",
+          "default": true
+        },
+        "radius": {
+          "type": "number",
+          "title": "Radius",
+          "description": "Radius for neighbor calculation (default: 10.0; runtime semantics are model-config dependent).",
+          "default": 10
+        },
+        "num_recycles": {
+          "type": "integer",
+          "title": "Num Recycles",
+          "description": "Number of recycles (default: 1)",
+          "default": 1
+        },
+        "softmax_T": {
+          "type": "number",
+          "title": "Softmax T",
+          "description": "Softmax temperature (default: 1e-5)",
+          "default": 0.00001
+        },
+        "write_trb": {
+          "type": "boolean",
+          "title": "Write Trb",
+          "description": "Write .trb files (default: True)",
+          "default": true
+        },
+        "cautious": {
+          "type": "boolean",
+          "title": "Cautious",
+          "description": "Use cautious mode (default: True)",
+          "default": true
+        },
+        "align_motif": {
+          "type": "boolean",
+          "title": "Align Motif",
+          "description": "Align motif (default: True)",
+          "default": true
+        },
+        "final_step": {
+          "type": "integer",
+          "title": "Final Step",
+          "description": "Final diffusion step (default: 1)",
+          "default": 1
+        },
+        "guide_scale": {
+          "type": "number",
+          "title": "Guide Scale",
+          "description": "Guidance scale (default: 10.0)",
+          "default": 10
         }
       },
       "type": "object",
-      "title": "VenusPrimeInput",
-      "description": "Input for VenusPrime multi-point combination mutation prediction (light=ridge regression, pro=reserved)"
+      "required": [
+        "input_pdb"
+      ],
+      "title": "RFdiffusion2Input",
+      "description": "Input for RFdiffusion2 protein design"
     },
     "isBinary": false
   },
@@ -291,7 +326,7 @@ export function register(program: Command, baseUrl: string): void {
       try {
         const currentBaseUrl = options.baseUrl || baseUrl;
         const config = { baseUrl: currentBaseUrl };
-const path = '/api/tools/predict/venusprime-multipoint';
+const path = '/api/tools/predict/rfdiffusion2-design';
 const url = path;
 
 

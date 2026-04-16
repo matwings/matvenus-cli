@@ -28,7 +28,19 @@ export function register(program: Command, baseUrl: string): void {
         "pdb_file": {
           "type": "string",
           "title": "Pdb File",
-          "description": "OSS URL to input PDB file"
+          "description": "Local path to input PDB file"
+        },
+        "ligand_file": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ligand File",
+          "description": "Optional ligand prep manifest path/URL produced by gromacs_ligand_prep (JSON contract with ligand_gro + ligand_itp paths)."
         },
         "force_field": {
           "type": "string",

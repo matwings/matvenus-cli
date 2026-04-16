@@ -28,12 +28,115 @@ export function register(program: Command, baseUrl: string): void {
         "tpr_file": {
           "type": "string",
           "title": "Tpr File",
-          "description": "OSS URL to .tpr file (from gromacs_md output)"
+          "description": "Local path to .tpr file (from gromacs_md output)"
         },
         "xtc_file": {
           "type": "string",
           "title": "Xtc File",
-          "description": "OSS URL to .xtc file (from gromacs_md output)"
+          "description": "Local path to .xtc file (from gromacs_md output)"
+        },
+        "edr_file": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Edr File",
+          "description": "Optional path to .edr file used for energy term extraction"
+        },
+        "enable_mdanalysis": {
+          "type": "boolean",
+          "title": "Enable Mdanalysis",
+          "description": "Whether to run fixed MDAnalysis post-analysis reports (default: True)",
+          "default": true
+        },
+        "mdanalysis_residue": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mdanalysis Residue",
+          "description": "Optional residue spec for residue-focused report, e.g. '45' or '12,15-20'"
+        },
+        "mdanalysis_partner_selection": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mdanalysis Partner Selection",
+          "description": "Optional MDAnalysis selection string for residue partner interactions"
+        },
+        "export_representative_frames": {
+          "type": "boolean",
+          "title": "Export Representative Frames",
+          "description": "Whether to export representative frames (initial/middle/final)",
+          "default": true
+        },
+        "representative_frame_formats": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "title": "Representative Frame Formats",
+          "description": "Representative frame formats to export. Supported: pdb, gro"
+        },
+        "result_policy": {
+          "type": "string",
+          "title": "Result Policy",
+          "description": "Result policy for post-processing warnings: soft or strict",
+          "default": "soft"
+        },
+        "enable_advanced_metrics": {
+          "type": "boolean",
+          "title": "Enable Advanced Metrics",
+          "description": "Whether to run advanced analysis metrics (sasa/hbond/mindist/rdf/energy)",
+          "default": true
+        },
+        "advanced_metrics": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "title": "Advanced Metrics",
+          "description": "Subset of advanced metrics to run"
+        },
+        "xvg_unit_system": {
+          "type": "string",
+          "title": "Xvg Unit System",
+          "description": "Unit system for XVG-derived outputs: native or human",
+          "default": "native"
+        },
+        "max_plot_points": {
+          "type": "integer",
+          "minimum": 100,
+          "title": "Max Plot Points",
+          "description": "Maximum points kept when rendering XVG plots/CSVs",
+          "default": 5000
+        },
+        "max_parallel_xvg": {
+          "type": "integer",
+          "maximum": 16,
+          "minimum": 1,
+          "title": "Max Parallel Xvg",
+          "description": "Maximum parallel XVG post-processing workers",
+          "default": 4
+        },
+        "include_observability_events": {
+          "type": "boolean",
+          "title": "Include Observability Events",
+          "description": "Whether to include pipeline stage events in result payload",
+          "default": true
         }
       },
       "type": "object",

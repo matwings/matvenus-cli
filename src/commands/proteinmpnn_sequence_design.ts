@@ -28,7 +28,7 @@ export function register(program: Command, baseUrl: string): void {
         "pdb_path": {
           "type": "string",
           "title": "Pdb Path",
-          "description": "OSS URL to input PDB file"
+          "description": "Local path to input PDB file"
         },
         "designed_chains": {
           "anyOf": [
@@ -43,7 +43,7 @@ export function register(program: Command, baseUrl: string): void {
             }
           ],
           "title": "Designed Chains",
-          "description": "Chain IDs to design (e.g., ['A', 'B']). If None, designs all chains"
+          "description": "Chain IDs to design (e.g., ['A', 'B']). Must be single-character alphanumeric IDs; values are normalized to uppercase. If None, designs all chains."
         },
         "fixed_chains": {
           "anyOf": [
@@ -58,12 +58,12 @@ export function register(program: Command, baseUrl: string): void {
             }
           ],
           "title": "Fixed Chains",
-          "description": "Chain IDs to keep fixed (e.g., ['C', 'D'])"
+          "description": "Chain IDs to keep fixed (e.g., ['C', 'D']). Must be single-character alphanumeric IDs; values are normalized to uppercase. Cannot overlap with designed_chains."
         },
         "num_sequences": {
           "type": "integer",
           "title": "Num Sequences",
-          "description": "Number of sequences to generate (default: 4)",
+          "description": "Number of sequences to generate (must be >= 1, default: 4)",
           "default": 4
         },
         "temperatures": {
@@ -72,7 +72,7 @@ export function register(program: Command, baseUrl: string): void {
           },
           "type": "array",
           "title": "Temperatures",
-          "description": "Sampling temperatures for sequence generation (default: [0.1])",
+          "description": "Sampling temperatures for sequence generation. Must be a non-empty list of positive numbers (default: [0.1]).",
           "default": [
             0.1
           ]
@@ -80,7 +80,7 @@ export function register(program: Command, baseUrl: string): void {
         "omit_aas": {
           "type": "string",
           "title": "Omit Aas",
-          "description": "Amino acids to omit from design (default: 'X')",
+          "description": "Amino acids to omit from design as one-letter codes. Value is normalized to uppercase and validated against standard amino acid codes (default: 'X').",
           "default": "X"
         },
         "homomer": {

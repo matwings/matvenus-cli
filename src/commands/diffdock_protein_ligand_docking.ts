@@ -35,7 +35,7 @@ export function register(program: Command, baseUrl: string): void {
             }
           ],
           "title": "Protein Path",
-          "description": "OSS URL to protein PDB file"
+          "description": "Local path to protein PDB file"
         },
         "protein_sequence": {
           "anyOf": [
@@ -59,7 +59,7 @@ export function register(program: Command, baseUrl: string): void {
             }
           ],
           "title": "Ligand",
-          "description": "Ligand SMILES string or OSS URL to ligand file (.sdf, .mol2, etc.)"
+          "description": "Ligand SMILES string or local path to ligand file (.sdf, .mol2, etc.)"
         },
         "protein_ligand_csv": {
           "anyOf": [
@@ -71,12 +71,13 @@ export function register(program: Command, baseUrl: string): void {
             }
           ],
           "title": "Protein Ligand Csv",
-          "description": "OSS URL to CSV file containing multiple protein-ligand pairs with columns: complex_name, protein_path, ligand_description, protein_sequence"
+          "description": "Local path to CSV file containing multiple protein-ligand pairs with columns: complex_name, protein_path, ligand_description, protein_sequence"
         },
         "num_poses": {
           "type": "integer",
+          "exclusiveMinimum": 0,
           "title": "Num Poses",
-          "description": "Number of poses to generate per complex (default: 10)",
+          "description": "Number of poses to generate per complex (must be > 0, default: 10)",
           "default": 10
         }
       },

@@ -28,7 +28,7 @@ export function register(program: Command, baseUrl: string): void {
         "pdb_file": {
           "type": "string",
           "title": "Pdb File",
-          "description": "OSS URL to input PDB file"
+          "description": "Local path to input PDB file"
         },
         "target_server": {
           "type": "string",
